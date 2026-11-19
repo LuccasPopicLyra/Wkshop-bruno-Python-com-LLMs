@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Nuvem de palavras em 3D comparando dois artigos sobre o uso de LLMs nas ciências sociais, no estilo do modelo Ugly Slides.">
+<title>LLMs nas Ciências Sociais · Ugly Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fondamento:ital@0;1&display=swap">
+<style>
+/* Layout: uma "apresentação" rolável. Cada seção é um slide de uma cor, com adesivos, faixa arco-íris e títulos de contorno. */
+:root {
+  --pink: #FF59F8; --yellow: #FFF610; --green: #28F625; --cyan: #00FFF7; --blue: #0009E2;
+  --purple: #B517C9; --ink: #000; --paper: #fff;
+  --a1: #FF59F8;      /* Ziems et al.  */
+  --a2: #FFF610;      /* De Paoli      */
+  --shared: #00FFF7;  /* parecido nos dois */
+  --f-body: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --f-comic: "Comic Sans MS", "Comic Sans", "Comic Neue", "Chalkboard SE", cursive;
+  --f-thin: Papyrus, "Fondamento", "Lucida Calligraphy", fantasy;
+  --f-cali: "Lucida Calligraphy", "Lucida Handwriting", "Fondamento", cursive;
+  --rainbow: linear-gradient(90deg, #ff3b3b, #ff9d00, #fff610, #28f625, #00fff7, #0009e2, #ff59f8);
+  --star: polygon(50.0% 0.0%,58.7% 12.0%,71.7% 5.0%,74.3% 19.5%,89.1% 18.8%,85.1% 33.1%,98.7% 38.9%,89.0% 50.0%,98.7% 61.1%,85.1% 66.9%,89.1% 81.2%,74.3% 80.5%,71.7% 95.0%,58.7% 88.0%,50.0% 100.0%,41.3% 88.0%,28.3% 95.0%,25.7% 80.5%,10.9% 81.2%,14.9% 66.9%,1.3% 61.1%,11.0% 50.0%,1.3% 38.9%,14.9% 33.1%,10.9% 18.8%,25.7% 19.5%,28.3% 5.0%,41.3% 12.0%);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: #111; color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; box-shadow: 0 0 0 7px var(--paper); }
+
+.slide { position: relative; overflow: hidden; padding-block: clamp(44px, 7vw, 88px); }
+.in { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto;
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar-rainbow { height: 18px; background: var(--rainbow); }
+.checker { height: 44px; background: conic-gradient(#c8c8c8 25%, #fff 0 50%, #c8c8c8 0 75%, #fff 0) 0 0 / 28px 28px; }
+
+/* títulos */
+h1, h2 { margin: 0; text-wrap: balance; font-weight: 400; }
+.t-glow { font-family: var(--f-comic); font-weight: 700; color: var(--yellow); font-size: clamp(34px, 6.4vw, 64px); line-height: 1.1;
+          text-shadow: 0 0 6px #fff, 0 0 18px #fff, 3px 3px 0 rgba(0,0,0,.35); }
+.t-thin { font-family: var(--f-thin); color: var(--yellow); font-size: clamp(38px, 7vw, 74px); line-height: 1.1; text-shadow: 2px 2px 0 #000, -1px -1px 0 #000; }
+.t-ring { font-family: var(--f-comic); font-weight: 700; color: var(--cyan); font-size: clamp(34px, 6.6vw, 68px); line-height: 1.1;
+          text-shadow: 3px 0 var(--pink), -3px 0 var(--pink), 0 3px var(--pink), 0 -3px var(--pink), 2px 2px var(--pink), -2px -2px var(--pink), 2px -2px var(--pink), -2px 2px var(--pink), 5px 6px 0 #000; }
+.lede { max-width: 62ch; font-size: clamp(15px, 2vw, 18px); margin: 14px 0 0; }
+
+/* adesivos (emoji) */
+.stk { position: absolute; z-index: 0; font-size: clamp(34px, 6.2vw, 78px); line-height: 1; pointer-events: none; user-select: none;
+       filter: drop-shadow(2px 4px 0 rgba(0,0,0,.28)); transform: rotate(var(--r, 0deg)); animation: wob 4.2s ease-in-out infinite alternate; }
+.stk.s { font-size: clamp(24px, 4vw, 48px); }
+.stk.l { font-size: clamp(48px, 9vw, 120px); }
+@keyframes wob { from { transform: rotate(calc(var(--r, 0deg) - 6deg)) translateY(0); } to { transform: rotate(calc(var(--r, 0deg) + 6deg)) translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .stk { animation: none; } }
+
+/* balão em estrela */
+.burst-wrap { display: inline-block; filter: drop-shadow(5px 6px 0 #000); transform: rotate(var(--r, -7deg)); }
+.burst { width: var(--w, 220px); aspect-ratio: 1; background: var(--bg, #fff); clip-path: var(--star); display: grid; place-content: center; text-align: center; padding: 18%; font-family: var(--f-comic); font-weight: 700; line-height: 1.15; }
+.burst.lime { --bg: var(--green); } .burst.pink { --bg: var(--pink); }
+
+/* 1 · título */
+.s-title { background: linear-gradient(135deg, #ff59f8 0%, #fff610 36%, #28f625 62%, #00fff7 100%); padding-bottom: 0; }
+.s-title h1 { display: grid; gap: 0; }
+.h-bold { font-family: var(--f-comic); font-weight: 700; font-size: clamp(46px, 10vw, 112px); line-height: 1; }
+.h-cali { font-family: var(--f-cali); font-style: italic; font-size: clamp(38px, 8.4vw, 94px); line-height: 1.15; }
+.band { background: var(--paper); margin-top: clamp(28px, 5vw, 56px); padding: 16px; text-align: center; font-family: var(--f-cali); font-size: clamp(15px, 2.2vw, 22px); position: relative; z-index: 1; }
+.s-title .burst-wrap { position: absolute; right: max(12px, 3%); top: 54%; z-index: 2; }
+
+/* 2 e 8 · pasto e céu */
+.s-grass { background: radial-gradient(130% 62% at 50% 112%, #3fae27 0 62%, transparent 62.4%), linear-gradient(#3b9cff 0%, #aee3ff 70%); padding-top: 0; }
+.s-grass .in { padding-top: clamp(32px, 6vw, 70px); }
+.ovals { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 2vw, 22px); margin-top: clamp(28px, 5vw, 54px); }
+.oval { flex: 0 1 188px; min-width: 0; display: grid; place-content: center; gap: 4px; text-align: center; text-decoration: none; color: #fff;
+        padding: 26px 22px; border-radius: 50%; aspect-ratio: 1.55; background: radial-gradient(ellipse at 40% 30%, #e86bf5, var(--purple) 70%);
+        box-shadow: 4px 5px 0 rgba(0,0,0,.55); transform: rotate(var(--r, 0deg)); transition: transform .15s ease; font-family: var(--f-comic); }
+.oval b { font-size: 17px; } .oval span { font-size: 13px; font-family: var(--f-body); }
+.oval:hover, .oval:focus-visible { transform: rotate(var(--r, 0deg)) scale(1.08); }
+.s-grass .t-thin { text-align: center; }
+
+/* 3 · nuvem */
+.s-cloud { background: var(--blue); }
+.tabs { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 18px; }
+.tab { font: 700 16px var(--f-comic); color: #000; border: 3px solid #000; border-radius: 12px; padding: 12px 18px; cursor: pointer; box-shadow: 4px 4px 0 #000; transition: transform .12s ease, box-shadow .12s ease; position: relative; }
+.tab[data-view="comb"] { background: var(--green); } .tab[data-view="a1"] { background: var(--pink); } .tab[data-view="a2"] { background: var(--yellow); }
+.tab:hover { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: 6px 6px 0 #000; }
+.tab[aria-selected="true"] { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; outline: 4px solid #fff; outline-offset: 2px; padding-right: 40px; }
+.tab[aria-selected="true"]::after { content: "✓"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 20px; }
+.stage { position: relative; border: 6px solid #fff; border-radius: 28px; box-shadow: 9px 9px 0 #000; overflow: hidden;
+         background: radial-gradient(circle at 50% 38%, #3038ff 0, #0009e2 52%, #00046b 100%); }
+.stage::before { content: ""; position: absolute; inset: 0; opacity: .55; pointer-events: none;
+         background: radial-gradient(2px 2px at 12% 20%, #fff 50%, transparent 52%), radial-gradient(2px 2px at 78% 14%, #fff 50%, transparent 52%), radial-gradient(3px 3px at 88% 70%, #fff 50%, transparent 52%),
+                     radial-gradient(2px 2px at 20% 82%, #fff 50%, transparent 52%), radial-gradient(2px 2px at 46% 8%, #fff 50%, transparent 52%), radial-gradient(3px 3px at 62% 90%, #fff 50%, transparent 52%); }
+.cloud { position: relative; width: 100%; height: 620px; }
+.cloud canvas { display: block; touch-action: pan-y; cursor: grab; }
+.cloud.dragging canvas { cursor: grabbing; } .cloud.over canvas { cursor: pointer; }
+.fallback { margin: 0; padding: 24px; color: #fff; max-width: 60ch; }
+.s-cloud .burst-wrap { position: absolute; right: 8px; top: 8px; z-index: 3; pointer-events: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 18px; font: 700 13px var(--f-comic); color: #fff; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; background: #000; padding: 6px 12px; border-radius: 999px; }
+.legend i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; display: inline-block; }
+.tip { position: absolute; pointer-events: none; background: var(--yellow); color: #000; border: 3px solid #000; border-radius: 12px; box-shadow: 3px 3px 0 #000;
+       font: 700 13px/1.45 var(--f-comic); padding: 8px 12px; z-index: 5; white-space: nowrap; }
+
+/* 4 · números */
+.s-facts { background: linear-gradient(160deg, #00fff7 0%, #28f625 100%); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(24px, 5vw, 56px); margin-top: 30px; }
+.fact { display: grid; justify-items: center; gap: 20px; text-align: center; min-width: 0; }
+.fact .burst { --w: clamp(220px, 30vw, 300px); } .fact strong { display: block; font-size: clamp(28px, 4.4vw, 40px); }
+.fact .burst small { font-size: 14px; font-weight: 700; }
+.fact p { margin: 0; max-width: 34ch; font-size: 17px; }
+.fact .who { font: 700 15px var(--f-comic); background: #000; color: #fff; padding: 6px 14px; border-radius: 999px; }
+
+/* 5 · ranking */
+.s-rank { background: var(--yellow); }
+.panel { background: #fff; border: 3px solid #000; border-radius: 22px; box-shadow: 8px 8px 0 #000; padding: clamp(14px, 3vw, 28px); margin-top: 28px; }
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rank li { display: grid; grid-template-columns: 2.2em minmax(0, 8.5em) 1fr 4.2em; align-items: center; gap: 12px; padding: 6px 10px; border-radius: 12px; font-size: 16px; border: 2px solid transparent; }
+.rank li:hover, .rank li:focus-visible { background: var(--cyan); border-color: #000; outline: none; box-shadow: none; }
+.rank .n { font: 700 14px var(--f-comic); text-align: right; }
+.rank .t { font: 700 17px var(--f-comic); overflow: hidden; text-overflow: ellipsis; }
+.rank .bar { height: 18px; border: 3px solid #000; border-radius: 999px; background: #fff; position: relative; overflow: hidden; }
+.rank .bar b { position: absolute; inset: 0 auto 0 0; border-right: 3px solid #000; }
+.rank .v { font: 700 14px var(--f-comic); text-align: right; font-variant-numeric: tabular-nums; }
+.note { margin: 16px 0 0; font-size: 14px; }
+
+/* 6 · artigos */
+.s-papers { background: linear-gradient(150deg, #b517c9 0%, #ff59f8 100%); }
+.papers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 30px; }
+.paper { min-width: 0; border: 3px solid #000; border-radius: 16px; box-shadow: 7px 7px 0 #000; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.paper.a1 { background: var(--pink); } .paper.a2 { background: var(--yellow); }
+.paper h3 { margin: 0; font: 700 clamp(18px, 2.6vw, 22px)/1.25 var(--f-comic); text-wrap: balance; }
+.paper p { margin: 0; font-size: 15px; } .paper .meta { font-size: 14px; }
+.paper .tagpill { justify-self: start; background: #000; color: #fff; font: 700 13px var(--f-comic); padding: 4px 12px; border-radius: 999px; }
+
+/* 7 · método */
+.s-method { background: var(--pink); }
+.duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 30px; }
+.card { background: #fff; border: 3px solid #000; border-radius: 22px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.pill { justify-self: center; background: #000; color: #fff; font: 700 18px var(--f-body); padding: 10px 34px; border-radius: 14px; }
+.card ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; font-size: 15px; }
+.swatches { display: grid; gap: 12px; }
+.swatches div { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+.swatches i { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 3px solid #000; }
+.s-method .t-ring { color: var(--yellow); text-shadow: 3px 0 var(--blue), -3px 0 var(--blue), 0 3px var(--blue), 0 -3px var(--blue), 2px 2px var(--blue), -2px -2px var(--blue), 2px -2px var(--blue), -2px 2px var(--blue), 5px 6px 0 #000; }
+
+/* 8 · créditos */
+.s-credits .in { text-align: center; padding-bottom: clamp(20px, 6vw, 70px); }
+.s-credits .ovals .oval { flex-basis: 260px; }
+.s-credits .burst-wrap { margin-top: 26px; text-decoration: none; }
+.burst-wrap a { display: block; color: inherit; text-decoration: none; }
+.burst-wrap a:hover .burst { background: var(--yellow); }
+
+@media (max-width: 640px) {
+  .cloud { height: 480px; }
+  .s-title .burst-wrap { position: static; margin-top: 22px; --w: 170px; }
+  .rank li { grid-template-columns: 1.8em minmax(0, 6.5em) 1fr 3.6em; gap: 8px; }
+  .stk.l { display: none; }
+}
+</style>
+</head>
+<body>
+<noscript><p style="background:#fff;padding:16px;margin:0">Esta página precisa de JavaScript para desenhar a nuvem de palavras em 3D.</p></noscript>
+
+<!-- 1 · título -->
+<header class="slide s-title" id="topo">
+  <span class="stk l" style="right:17%;top:3%;--r:-8deg" aria-hidden="true">🐸</span>
+  <span class="stk" style="right:4%;top:7%;--r:10deg" aria-hidden="true">🐬</span>
+  <span class="stk s" style="left:58%;top:30%;--r:0deg" aria-hidden="true">⭐</span>
+  <span class="stk" style="right:27%;bottom:24%;--r:-6deg" aria-hidden="true">😎</span>
+  <div class="in">
+    <h1><span class="h-bold">LLMs nas</span><span class="h-cali">Ciências Sociais</span></h1>
+    <p class="lede">Nuvem de palavras em 3D de dois artigos sobre o uso de modelos de linguagem na pesquisa social.</p>
+    <span class="burst-wrap" style="--r:8deg"><span class="burst lime" style="--w:200px"><span>2 artigos<br>100 palavras<br>em 3D!</span></span></span>
+  </div>
+  <div class="band">o que importa é o que está dentro (do texto)</div>
+</header>
+<div class="bar-rainbow"></div>
+
+<!-- 2 · sumário -->
+<section class="slide s-grass" id="sumario" aria-labelledby="h-sumario">
+  <div class="checker" aria-hidden="true"></div>
+  <span class="stk" style="left:4%;top:70px;--r:-10deg" aria-hidden="true">👀</span>
+  <span class="stk" style="right:4%;top:70px;--r:10deg" aria-hidden="true">👀</span>
+  <div class="in">
+    <h2 class="t-thin" id="h-sumario">O que vamos ver</h2>
+    <nav class="ovals" aria-label="Seções">
+      <a class="oval" href="#nuvem" style="--r:-3deg"><b>Nuvem 3D</b><span>Gire a esfera de palavras.</span></a>
+      <a class="oval" href="#numeros" style="--r:2deg"><b>Números</b><span>Quanto texto foi lido.</span></a>
+      <a class="oval" href="#ranking" style="--r:-2deg"><b>Ranking</b><span>As 15 palavras que mais pesam.</span></a>
+      <a class="oval" href="#artigos" style="--r:3deg"><b>Artigos</b><span>De onde vieram os dados.</span></a>
+      <a class="oval" href="#metodo" style="--r:-3deg"><b>Método</b><span>Como a contagem foi feita.</span></a>
+    </nav>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 3 · nuvem -->
+<section class="slide s-cloud" id="nuvem" aria-labelledby="h-nuvem">
+  <span class="stk" style="left:1%;top:3%;--r:-12deg" aria-hidden="true">🌈</span>
+  <span class="stk s" style="right:3%;top:5%;--r:12deg" aria-hidden="true">✨</span>
+  <div class="in">
+    <h2 class="t-glow" id="h-nuvem">Nuvem de palavras</h2>
+    <p class="lede" style="color:#fff">As 100 palavras mais frequentes ficam numa esfera. Na visão combinada, cada palavra leva a cor do artigo em que pesa mais.</p>
+    <div class="tabs" role="tablist" aria-label="Escolher nuvem">
+      <button class="tab" role="tab" id="tab-comb" data-view="comb" aria-selected="true">Combinada</button>
+      <button class="tab" role="tab" id="tab-a1" data-view="a1" aria-selected="false">Ziems et al. (2024)</button>
+      <button class="tab" role="tab" id="tab-a2" data-view="a2" aria-selected="false">De Paoli (2023)</button>
+    </div>
+    <div class="stage">
+      <span class="burst-wrap" style="--r:9deg"><span class="burst lime" style="--w:150px"><span style="font-size:13px">arraste<br>para girar!</span></span></span>
+      <div class="cloud" id="cloud" role="img" aria-label="Nuvem de palavras em 3D"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 4 · números -->
+<section class="slide s-facts" id="numeros" aria-labelledby="h-num">
+  <span class="stk" style="left:36%;top:3%;--r:-10deg" aria-hidden="true">🍒</span>
+  <span class="stk" style="right:3%;top:10%;--r:8deg" aria-hidden="true">🦋</span>
+  <span class="stk" style="left:44%;bottom:3%;--r:6deg" aria-hidden="true">🌟</span>
+  <div class="in">
+    <h2 class="t-ring" id="h-num">Números</h2>
+    <div class="facts">
+      <div class="fact">
+        <span class="who">Ziems et al. (2024)</span>
+        <span class="burst-wrap" style="--r:-7deg"><span class="burst"><span><strong id="tot-a1">…</strong><small>palavras no corpo</small></span></span></span>
+        <p id="top-a1"></p>
+      </div>
+      <div class="fact">
+        <span class="who">De Paoli (2023)</span>
+        <span class="burst-wrap" style="--r:6deg"><span class="burst"><span><strong id="tot-a2">…</strong><small>palavras no corpo</small></span></span></span>
+        <p id="top-a2"></p>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 5 · ranking -->
+<section class="slide s-rank" id="ranking" aria-labelledby="rank-title">
+  <span class="stk l" style="right:2%;top:3%;--r:10deg" aria-hidden="true">🍄</span>
+  <span class="stk s" style="left:2%;top:4%;--r:-8deg" aria-hidden="true">💖</span>
+  <div class="in">
+    <h2 class="t-ring" id="rank-title">Termos que mais pesam</h2>
+    <div class="panel">
+      <ol class="rank" id="rank"></ol>
+      <p class="note" id="rank-note"></p>
+    </div>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 6 · artigos -->
+<section class="slide s-papers" id="artigos" aria-labelledby="h-art">
+  <span class="stk" style="right:3%;top:5%;--r:-8deg" aria-hidden="true">🦄</span>
+  <span class="stk s" style="left:3%;bottom:4%;--r:8deg" aria-hidden="true">🌻</span>
+  <div class="in">
+    <h2 class="t-glow" id="h-art" style="color:var(--cyan)">Os artigos</h2>
+    <div class="papers">
+      <article class="paper a1">
+        <span class="tagpill">cor rosa</span>
+        <h3>Can Large Language Models Transform Computational Social Science?</h3>
+        <p>Caleb Ziems, William Held, Omar Shaikh et al.</p>
+        <p class="meta"><i>Computational Linguistics</i>, 2024 · <span id="meta-a1"></span><br><a href="https://doi.org/10.1162/coli_a_00502" target="_blank" rel="noopener">doi:10.1162/coli_a_00502</a></p>
+      </article>
+      <article class="paper a2">
+        <span class="tagpill">cor amarela</span>
+        <h3>Performing an Inductive Thematic Analysis of Semi-Structured Interviews With a Large Language Model</h3>
+        <p>Stefano De Paoli</p>
+        <p class="meta"><i>Social Science Computer Review</i>, 2023 · <span id="meta-a2"></span><br><a href="https://doi.org/10.1177/08944393231220483" target="_blank" rel="noopener">doi:10.1177/08944393231220483</a></p>
+      </article>
+    </div>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 7 · método -->
+<section class="slide s-method" id="metodo" aria-labelledby="h-met">
+  <span class="stk" style="right:4%;top:4%;--r:12deg" aria-hidden="true">🧮</span>
+  <div class="in">
+    <h2 class="t-ring" id="h-met">Como foi contado</h2>
+    <div class="duo">
+      <div class="card">
+        <span class="pill">Passo a passo</span>
+        <ul>
+          <li>Texto extraído dos PDFs em acesso aberto (versões do arXiv), sem cabeçalhos, rodapés e lista de referências.</li>
+          <li>Palavras vazias do inglês removidas (the, of, using, table…). Palavras com menos de 3 letras ficaram de fora.</li>
+          <li>Para comparar textos de tamanhos diferentes, a visão combinada usa ocorrências por mil palavras (‰).</li>
+          <li>Uma palavra recebe a cor de um artigo quando aparece lá pelo menos 1,6 vez mais, em ‰, do que no outro.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="pill">Cores</span>
+        <div class="swatches">
+          <div><i style="background:var(--pink)"></i>pesa mais em Ziems et al. (2024)</div>
+          <div><i style="background:var(--yellow)"></i>pesa mais em De Paoli (2023)</div>
+          <div><i style="background:var(--cyan)"></i>uso parecido nos dois artigos</div>
+        </div>
+        <p class="note" style="margin:0">O tamanho da palavra mostra a frequência. Passe o mouse sobre ela, ou sobre um termo do ranking, para ver os números.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="bar-rainbow"></div>
+
+<!-- 8 · créditos -->
+<footer class="slide s-grass s-credits" id="creditos" aria-labelledby="h-cred">
+  <div class="checker" aria-hidden="true"></div>
+  <span class="stk" style="left:5%;bottom:10%;--r:-8deg" aria-hidden="true">🌼</span>
+  <span class="stk" style="right:5%;bottom:12%;--r:8deg" aria-hidden="true">🐸</span>
+  <div class="in">
+    <h2 class="t-thin" id="h-cred">Créditos</h2>
+    <div class="ovals">
+      <div class="oval" style="--r:-3deg"><b>Dados</b><span>Artigos encontrados no OpenAlex. PDFs em acesso aberto.</span></div>
+      <div class="oval" style="--r:3deg"><b>Estética</b><span>Inspirada no modelo gratuito "Ugly Slides Presentation", do Canva.</span></div>
+    </div>
+    <span class="burst-wrap" style="--r:-6deg"><a href="../llms-ciencias-sociais/"><span class="burst" style="--w:200px"><span>ver a versão<br>sóbria</span></span></a></span>
+  </div>
+</footer>
+<div class="bar-rainbow"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const DADOS = [{"arquivo": "01_Can LLMs Transform Computational Social Science (Ziems et al., 2024).pdf", "total": 16339, "freq": [["llms", 123], ["tasks", 110], ["models", 106], ["social", 102], ["css", 89], ["model", 77], ["human", 64], ["task", 63], ["classification", 57], ["language", 55], ["analysis", 49], ["performance", 48], ["text", 47], ["gpt", 47], ["data", 44], ["davinci", 41], ["political", 38], ["generation", 38], ["event", 37], ["researchers", 36], ["detection", 36], ["zero-shot", 35], ["best", 33], ["llm", 33], ["figurative", 31], ["work", 30], ["dataset", 30], ["evaluate", 29], ["science", 28], ["ideology", 28], ["evaluation", 28], ["gold", 28], ["results", 28], ["computational", 26], ["research", 26], ["study", 26], ["annotation", 25], ["persuasion", 25], ["emotion", 24], ["hate", 24], ["scientists", 24], ["errors", 22], ["misinformation", 21], ["understand", 21], ["explanations", 20], ["openai", 20], ["change", 20], ["stance", 20], ["methods", 20], ["power", 20], ["flan", 20], ["set", 19], ["labels", 19], ["error", 18], ["events", 18], ["discourse", 18], ["health", 18], ["politeness", 18], ["following", 18], ["label", 18], ["extraction", 17], ["humor", 17], ["speech", 17], ["help", 17], ["according", 17], ["cases", 17], ["bias", 17], ["agreement", 16], ["empathy", 16], ["utterance", 16], ["turbo", 16], ["expert", 16], ["tools", 15], ["prompt", 15], ["toxicity", 15], ["benchmark", 15], ["scale", 15], ["time", 15], ["metrics", 15], ["humans", 14], ["questions", 14], ["outputs", 14], ["focus", 14], ["argument", 14], ["sentence", 14], ["corpus", 14], ["pipeline", 13], ["semantic", 13], ["dialect", 13], ["psychology", 13], ["explanation", 13], ["size", 13], ["contains", 13], ["neutral", 13], ["labeling", 12], ["fine-tuned", 12], ["baseline", 12], ["character", 12], ["utterances", 12], ["answer", 12], ["generate", 12], ["performances", 12], ["test", 12], ["fine-tuning", 12], ["conversation", 12], ["terms", 12], ["understanding", 12], ["training", 11], ["quality", 11], ["flan-t", 11], ["summarization", 11], ["conversations", 11], ["behavior", 11], ["sciences", 11], ["provide", 11], ["document-level", 11], ["causal", 11], ["persuasive", 11], ["information", 11], ["level", 11], ["accuracy", 11], ["target", 11], ["especially", 11], ["high", 11], ["augment", 10], ["measure", 10], ["representative", 10], ["annotators", 10], ["literature", 10], ["evaluations", 10], ["tropes", 10], ["positive", 10], ["documents", 10], ["current", 10], ["supervised", 10], ["pretraining", 10], ["generative", 10], ["constructs", 10], ["significantly", 10], ["instead", 10], ["features", 10], ["class", 10], ["applications", 10], ["online", 10], ["taxonomy", 10], ["learning", 10], ["generations", 10], ["annotations", 10], ["scores", 10], ["large", 9], ["phenomena", 9], ["prompting", 9], ["fair", 9], ["produce", 9], ["strategies", 9], ["mental", 9], ["reframing", 9], ["sociology", 9], ["article", 9], ["types", 9]]}, {"arquivo": "02_Inductive Thematic Analysis with a LLM (De Paoli, 2023).pdf", "total": 9010, "freq": [["themes", 84], ["data", 83], ["analysis", 73], ["model", 73], ["phase", 67], ["gaming", 66], ["teaching", 57], ["codes", 52], ["prompt", 51], ["theme", 50], ["llms", 38], ["games", 37], ["research", 33], ["llm", 32], ["dataset", 31], ["qualitative", 30], ["interviews", 23], ["results", 22], ["description", 22], ["topics", 22], ["group", 21], ["social", 20], ["education", 20], ["code", 20], ["original", 19], ["ethical", 17], ["learning", 16], ["descriptions", 16], ["inferred", 16], ["paper", 15], ["video", 15], ["tokens", 15], ["inductive", 14], ["coding", 14], ["analysts", 14], ["response", 14], ["approach", 13], ["researchers", 13], ["interpretation", 13], ["work", 13], ["name", 13], ["perform", 12], ["previous", 12], ["text", 12], ["prompts", 12], ["names", 12], ["test", 12], ["language", 11], ["sciences", 11], ["gpt", 11], ["collaboration", 11], ["report", 11], ["skills", 11], ["identify", 11], ["chunks", 11], ["number", 11], ["models", 10], ["human", 10], ["braun", 10], ["clarke", 10], ["methods", 10], ["output", 10], ["temperature", 10], ["chunk", 10], ["presented", 10], ["list", 10], ["diversity", 10], ["game", 10], ["esports", 10], ["datasets", 9], ["validity", 9], ["process", 9], ["perspective", 9], ["potential", 9], ["resources", 9], ["api", 9], ["limit", 9], ["challenges", 9], ["issues", 9], ["physical", 9], ["available", 8], ["deductive", 8], ["produced", 8], ["infer", 8], ["discussion", 8], ["produce", 8], ["meaning", 8], ["literature", 8], ["asked", 8], ["development", 8], ["tools", 8], ["comparison", 8], ["critical", 8], ["index", 8], ["health", 8], ["students", 8], ["clearly", 8], ["thematic", 7], ["initial", 7], ["experiment", 7], ["turbo", 7], ["working", 7], ["representation", 7], ["field", 7], ["marketing", 7], ["time", 7], ["gao", 7], ["focus", 7], ["codebook", 7], ["user", 7], ["set", 7], ["methodological", 7], ["project", 7], ["persico", 7], ["interview", 7], ["importance", 7], ["violence", 7], ["art", 7], ["statistical", 7], ["mentoring", 7], ["generated", 7], ["semi-structured", 6], ["note", 6], ["review", 6], ["open", 6], ["access", 6], ["script", 6], ["phases", 6], ["conducted", 6], ["human-ai", 6], ["thinking", 6], ["structure", 6], ["chatgpt", 6], ["ethics", 6], ["content", 6], ["due", 6], ["aspects", 6], ["impacts", 6], ["found", 6], ["support", 6], ["implications", 6], ["assess", 6], ["propose", 6], ["generate", 6], ["concerns", 6], ["quantitative", 6], ["requires", 6], ["get", 6], ["provide", 6], ["clear", 6], ["csv", 6], ["file", 6], ["sub-themes", 6], ["benefits", 6], ["monetization", 6], ["seem", 6], ["identified", 6], ["large", 5], ["university", 5], ["solutions", 5]]}];
+const ART = [
+  { id: "a1", nome: "Ziems et al. (2024)", cor: "--a1" },
+  { id: "a2", nome: "De Paoli (2023)", cor: "--a2" },
+];
+ART.forEach((a, i) => { a.total = DADOS[i].total; a.freq = new Map(DADOS[i].freq); });
+const N = 100;
+const pm = (a, t) => 1000 * (a.freq.get(t) || 0) / a.total;
+const reduzMov = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function corComb(t) {
+  const v1 = pm(ART[0], t), v2 = pm(ART[1], t);
+  if (v1 >= 1.6 * v2) return "--a1";
+  if (v2 >= 1.6 * v1) return "--a2";
+  return "--shared";
+}
+function visao(id) {
+  if (id === "comb") {
+    const todos = new Set([...ART[0].freq.keys(), ...ART[1].freq.keys()]);
+    return [...todos].map(t => ({ t, v: pm(ART[0], t) + pm(ART[1], t), cor: corComb(t) }))
+      .sort((x, y) => y.v - x.v).slice(0, N);
+  }
+  const a = ART.find(x => x.id === id);
+  return [...a.freq].slice(0, N).map(([t, n]) => ({ t, v: n, cor: a.cor }));
+}
+const token = nome => getComputedStyle(document.documentElement).getPropertyValue(nome).trim() || "#888";
+
+// ---------- cena Three.js ----------
+const cloud = document.getElementById("cloud");
+const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
+let atual = "comb", itens = [], sprites = [], hoverIdx = -1, destaqueRank = -1;
+let renderer, scene, camera, grupo, raycaster, ponteiro;
+const R = 10; // raio da esfera
+
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  cloud.appendChild(renderer.domElement);
+  renderer.domElement.setAttribute("aria-hidden", "true");
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.set(0, 0, 30);
+  grupo = new THREE.Group();
+  grupo.rotation.x = 0.18;
+  scene.add(grupo);
+  raycaster = new THREE.Raycaster();
+  ponteiro = new THREE.Vector2(-9, -9);
+} catch (e) {
+  renderer = null;
+  cloud.innerHTML = '<p class="fallback">Este navegador não conseguiu iniciar o WebGL, que a nuvem em 3D usa. O ranking abaixo mostra os mesmos termos.</p>';
+}
+cloud.appendChild(tip);
+
+function texturaPalavra(texto, cor, peso) {
+  const px = 104, contorno = 16, pad = 22;
+  const c = document.createElement("canvas"), g = c.getContext("2d");
+  const fonte = `700 ${px}px "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive`;
+  g.font = fonte;
+  const w = Math.ceil(g.measureText(texto).width) + pad * 2, h = Math.ceil(px * 1.45);
+  c.width = w; c.height = h;
+  g.font = fonte; g.textAlign = "center"; g.textBaseline = "middle";
+  g.lineJoin = "round"; g.lineWidth = contorno; g.strokeStyle = "#000";
+  g.strokeText(texto, w / 2, h / 2 + px * 0.03);
+  g.fillStyle = cor; g.fillText(texto, w / 2, h / 2 + px * 0.03);
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+  if (renderer) tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return { tex, aspecto: w / h };
+}
+
+function limpar() {
+  sprites.forEach(s => { grupo.remove(s); s.material.map.dispose(); s.material.dispose(); });
+  sprites = [];
+}
+
+function montar() {
+  itens = visao(atual);
+  legenda(); ranking(itens);
+  cloud.setAttribute("aria-label", "Nuvem de palavras em 3D. Termos principais: " + itens.slice(0, 20).map(x => x.t).join(", "));
+  if (!renderer) return;
+  limpar();
+  const vmax = itens[0].v, vmin = itens[itens.length - 1].v;
+  const n = itens.length, aureo = Math.PI * (3 - Math.sqrt(5));
+  // ponto da esfera de cada palavra: passo 37 (primo com 100) espalha as maiores pela superfície,
+  // começando no equador, em vez de agrupá-las num polo
+  const ponto = i => (i * 37 + Math.floor(n / 2)) % n;
+  itens.forEach((it, i) => {
+    const r = vmax === vmin ? 0.5 : (Math.sqrt(it.v) - Math.sqrt(vmin)) / (Math.sqrt(vmax) - Math.sqrt(vmin));
+    const peso = i < 10 ? 800 : i < 35 ? 700 : 600;
+    const { tex, aspecto } = texturaPalavra(it.t, token(it.cor), peso);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const s = new THREE.Sprite(mat);
+    const altura = 0.5 + r * 1.5;
+    s.scale.set(altura * aspecto, altura, 1);
+    s.userData = { i, base: altura, aspecto };
+    const k = ponto(i), y = 1 - ((k + 0.5) / n) * 2, raio = Math.sqrt(1 - y * y), th = aureo * k;
+    const rr = R * (0.9 + 0.1 * (1 - r)); // termos maiores um pouco mais para dentro
+    s.position.set(Math.cos(th) * raio * rr, y * rr, Math.sin(th) * raio * rr);
+    grupo.add(s); sprites.push(s);
+  });
+  hoverIdx = -1; tip.hidden = true;
+}
+
+function redimensionar() {
+  if (!renderer) return;
+  const w = cloud.clientWidth, h = cloud.clientHeight;
+  renderer.setSize(w, h, false);
+  renderer.domElement.style.width = w + "px"; renderer.domElement.style.height = h + "px";
+  camera.aspect = w / h;
+  // afasta a câmera em telas estreitas para a esfera caber na largura
+  const tV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tH = tV * camera.aspect;
+  const folga = tH < tV ? 2.6 : 1.2; // em tela estreita as palavras largas encostam nas laterais
+  camera.position.z = (R + folga) / Math.sin(Math.atan(Math.min(tV, tH)));
+  camera.updateProjectionMatrix();
+}
+
+// ---------- interação ----------
+let arrastando = false, ultimo = null, velX = 0, velY = reduzMov ? 0 : 0.0016, parado = 0;
+const auto = reduzMov ? 0 : 0.0016;
+
+function posPonteiro(e) {
+  const r = cloud.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width, h: r.height };
+}
+if (renderer) {
+  const el = renderer.domElement;
+  el.addEventListener("pointerdown", e => {
+    arrastando = true; ultimo = { x: e.clientX, y: e.clientY }; parado = 0;
+    cloud.classList.add("dragging"); el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener("pointermove", e => {
+    const p = posPonteiro(e);
+    ponteiro.set((p.x / p.w) * 2 - 1, -(p.y / p.h) * 2 + 1);
+    ponteiro.px = p;
+    if (arrastando && ultimo) {
+      const dx = e.clientX - ultimo.x, dy = e.clientY - ultimo.y;
+      velY = dx * 0.005; velX = dy * 0.005;
+      grupo.rotation.y += velY; grupo.rotation.x = Math.max(-1.2, Math.min(1.2, grupo.rotation.x + velX));
+      ultimo = { x: e.clientX, y: e.clientY };
+    }
+  });
+  const soltar = () => { arrastando = false; ultimo = null; cloud.classList.remove("dragging"); };
+  el.addEventListener("pointerup", soltar);
+  el.addEventListener("pointercancel", soltar);
+  el.addEventListener("pointerleave", () => { if (!arrastando) { ponteiro.set(-9, -9); destacar(-1); } });
+}
+
+function destacar(idx, px) {
+  if (idx === hoverIdx && idx !== -1 && !px) return;
+  hoverIdx = idx;
+  if (idx < 0) { tip.hidden = true; return; }
+  const t = itens[idx].t;
+  tip.innerHTML = `<b>${t}</b><br>` + ART.map(a => `${a.nome}: ${a.freq.get(t) || 0} (${pm(a, t).toFixed(1)}‰)`).join("<br>");
+  tip.hidden = false;
+  let x, y;
+  if (px) { x = px.x + 14; y = px.y + 14; }
+  else { // posição projetada da palavra (quando vem do ranking)
+    const v = sprites[idx].getWorldPosition(new THREE.Vector3()).project(camera);
+    x = (v.x + 1) / 2 * cloud.clientWidth + 14; y = (1 - v.y) / 2 * cloud.clientHeight + 14;
+  }
+  x = Math.max(4, Math.min(x, cloud.clientWidth - tip.offsetWidth - 4));
+  y = Math.max(4, Math.min(y, cloud.clientHeight - tip.offsetHeight - 4));
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+
+// ---------- laço de animação ----------
+const vTmp = renderer ? new THREE.Vector3() : null;
+function quadro() {
+  if (!renderer) return;
+  if (!arrastando) {
+    velY += (auto - velY) * 0.02; velX *= 0.94;
+    grupo.rotation.y += velY;
+    grupo.rotation.x = Math.max(-1.2, Math.min(1.2, grupo.rotation.x + velX));
+  }
+  // palavra sob o ponteiro
+  let achou = -1;
+  if (ponteiro.x > -2 && sprites.length) {
+    raycaster.setFromCamera(ponteiro, camera);
+    const hit = raycaster.intersectObjects(sprites, false);
+    const frente = hit.find(h => h.object.getWorldPosition(vTmp).z > -R * 0.2);
+    if (frente) achou = frente.object.userData.i;
+  }
+  if (destaqueRank >= 0) achou = destaqueRank;
+  if (achou !== hoverIdx || (achou >= 0 && ponteiro.px && destaqueRank < 0)) destacar(achou, destaqueRank >= 0 ? null : ponteiro.px);
+  cloud.classList.toggle("over", achou >= 0 && destaqueRank < 0);
+  // profundidade: palavras do fundo ficam mais claras e menores; a destacada cresce
+  for (const s of sprites) {
+    const z = s.getWorldPosition(vTmp).z;
+    const prof = (z + R) / (2 * R); // 0 atrás, 1 na frente
+    const ativo = s.userData.i === achou;
+    s.material.opacity = achou >= 0 && !ativo ? 0.07 + 0.25 * prof : Math.min(1, 0.12 + 1.6 * prof);
+    const f = ativo ? 1.18 : 1;
+    s.scale.set(s.userData.base * s.userData.aspecto * f, s.userData.base * f, 1);
+    s.renderOrder = ativo ? 1000 : Math.round(prof * 100);
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(quadro);
+}
+
+// ---------- legenda e ranking ----------
+function legenda() {
+  const L = document.getElementById("legend");
+  const linha = (cor, txt) => `<span><i style="background:var(${cor})"></i>${txt}</span>`;
+  const dica = `<span>Arraste para girar · passe o mouse sobre uma palavra para ver os números</span>`;
+  L.innerHTML = atual === "comb"
+    ? linha("--a1", "pesa mais em Ziems et al.") + linha("--a2", "pesa mais em De Paoli") + linha("--shared", "parecido nos dois") +
+      `<span>Tamanho = soma das ocorrências por mil palavras</span>` + dica
+    : `<span>Tamanho = número de ocorrências no artigo</span>` + dica;
+}
+function ranking(lista) {
+  const ol = document.getElementById("rank");
+  const top = lista.slice(0, 15), max = top[0].v, comb = atual === "comb";
+  document.getElementById("rank-title").textContent = comb ? "Termos que mais pesam nos dois" : "Termos mais frequentes";
+  ol.innerHTML = top.map((it, i) => {
+    const val = comb ? it.v.toFixed(1) + "‰" : it.v;
+    return `<li tabindex="0" data-i="${i}"><span class="n">${i + 1}</span><span class="t" title="${it.t}">${it.t}</span>` +
+      `<span class="bar"><b style="width:${(100 * it.v / max).toFixed(1)}%;background:var(${it.cor})"></b></span>` +
+      `<span class="v">${val}</span></li>`;
+  }).join("");
+  document.getElementById("rank-note").textContent = (comb
+    ? "Valores em ocorrências por mil palavras, somados entre os dois artigos."
+    : "Contagem absoluta de ocorrências no corpo do artigo.") + " Passe o mouse ou foque um termo para achá-lo na esfera.";
+}
+const ol = document.getElementById("rank");
+const marcar = e => { const li = e.target.closest("li[data-i]"); destaqueRank = li ? +li.dataset.i : -1; };
+ol.addEventListener("mouseover", marcar);
+ol.addEventListener("focusin", marcar);
+ol.addEventListener("mouseleave", () => { destaqueRank = -1; });
+ol.addEventListener("focusout", () => { destaqueRank = -1; });
+
+// ---------- abas, tema, tamanho ----------
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  atual = b.dataset.view;
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === b ? "true" : "false"));
+  try { localStorage.setItem("nuvem-visao", atual); } catch (e) {}
+  montar();
+}));
+try {
+  const salvo = localStorage.getItem("nuvem-visao");
+  if (salvo && document.querySelector(`.tab[data-view="${salvo}"]`)) {
+    atual = salvo;
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x.dataset.view === salvo ? "true" : "false"));
+  }
+} catch (e) {}
+
+document.getElementById("meta-a1").textContent = `${ART[0].total.toLocaleString("pt-BR")} palavras no corpo`;
+document.getElementById("meta-a2").textContent = `${ART[1].total.toLocaleString("pt-BR")} palavras no corpo`;
+
+// as cores vêm dos tokens CSS: refaz as texturas quando o tema muda
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", montar);
+new MutationObserver(montar).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+if (window.ResizeObserver) new ResizeObserver(redimensionar).observe(cloud);
+else window.addEventListener("resize", redimensionar);
+
+redimensionar();
+montar();
+if (document.fonts && document.fonts.load) document.fonts.load('700 40px "Comic Neue"').then(montar, montar);
+requestAnimationFrame(quadro);
+
+</script>
+<script>
+(function () {
+  const fmt = n => n.toLocaleString("pt-BR");
+  ART.forEach(a => {
+    const [t1, t2] = [...a.freq];
+    document.getElementById("tot-" + a.id).textContent = fmt(a.total);
+    document.getElementById("top-" + a.id).innerHTML =
+      `<b>${t1[0]}</b> aparece ${t1[1]} vezes e <b>${t2[0]}</b>, ${t2[1]}. Contagem só do corpo do texto.`;
+  });
+})();
+</script>
+</body>
+</html>
